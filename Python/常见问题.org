@@ -1,0 +1,238 @@
+1. 类继承
+    #+BEGIN_SRC python
+    class A(object):
+        def show(self):
+            print 'base show'
+
+    class B(A):
+        def show(self):
+            print 'derived show'
+
+    obj = B()
+    obj.show()
+    #+END_SRC
+
+    问如何调用类 A 的 show 方法了？
+
+    使用 __class__, 因为它指向了类对象。
+    #+BEGIN_SRC python
+    obj.__class__ = A
+    obj.show()
+    #+END_SRC
+
+2. 方法对象
+    问题：为了让下面这段代码运行，需要增加哪些代码？
+    #+BEGIN_SRC python
+    class A(object):
+        def __init__(self,a,b):
+            self.__a = a
+            self.__b = b
+        def myprint(self):
+            print 'a=', self.__a, 'b=', self.__b
+
+
+    a1=A(10,20)
+    a1.myprint()
+
+    a1(80)
+    #+END_SRC
+
+    答案：为了能让对象实例能被直接调用，需要实现__call__方法
+    #+BEGIN_SRC python
+    class A(object):
+        def __init__(self, a, b):
+            self.__a = a
+            self.__b = b
+        def myprint(self):
+            print 'a=', self.__a, 'b=', self.__b
+        def __call__(self, num):
+            print 'call:', num + self.__a
+    #+END_SRC
+3. new 和 init
+    #+BEGIN_SRC python
+    class B(object):
+        def fn(self):
+            print 'B fn'
+        def __init__(self):
+            print "B INIT"
+
+
+    class A(object):
+        def fn(self):
+            print 'A fn'
+
+        def __new__(cls,a):
+                print "NEW", a
+                if a>10:
+                    return super(A, cls).__new__(cls)
+                return B()
+
+        def __init__(self,a):
+            print "INIT", a
+
+    a1 = A(5)
+    a1.fn()
+    a2=A(20)
+    a2.fn()
+    #+END_SRC
+
+    代码的输出是什么？
+
+    #+BEGIN_SRC python
+    NEW 5
+    B INIT
+    B fn
+    NEW 20
+    INIT 20
+    A fn
+    #+END_SRC
+
+    使用__new__方法，可以决定返回那个对象，也就是创建对象之前，这个可
+   以用于设计模式的单例、工厂模式。__init__是创建对象是调用的。
+4. Python list 和 dict 生成
+    下面这段代码输出什么?
+    #+BEGIN_SRC python
+    ls = [1,2,3,4]
+    list1 = [i for i in ls if i>2]
+    print list1
+
+    list2 = [i*2 for i in ls if i>2]
+    print list2
+
+    dic1 = {x: x**2 for x in (2, 4, 6)}
+    print dic1
+
+    dic2 = {x: 'item' + str(x**2) for x in (2, 4, 6)}
+    print dic2
+
+    set1 = {x for x in 'hello world' if x not in 'low level'}
+    print set1
+    #+END_SRC
+
+    答案：
+    #+BEGIN_SRC python[3, 4]
+    [6, 8]
+    {2: 4, 4: 16, 6: 36}
+    {2: 'item4', 4: 'item16', 6: 'item36'}
+    set(['h', 'r', 'd'])
+    #+END_SRC
+5. 全局和局部变量
+    下面这段代码输出什么?
+    #+BEGIN_SRC python
+    num = 9
+
+    def f1():
+        num = 20
+
+    def f2():
+        print num
+
+    f2()
+    f1()
+    f2()
+    #+END_SRC
+
+    答案：
+    #+BEGIN_SRC python9
+    9
+    9
+    #+END_SRC
+
+    num 不是个全局变量，所以每个函数都得到了自己的 num 拷贝，如果你想修改
+   num，则必须用 global 关键字声明。
+6. 交换两个变量的值
+    #+BEGIN_SRC python
+    (a, b) = (b, a)
+    #+END_SRC
+7. 默认方法
+    #+BEGIN_SRC python
+    class A(object):
+        def __init__(self,a,b):
+            self.a1 = a
+            self.b1 = b
+            print 'init'
+        def mydefault(self):
+            print 'default'
+
+    a1 = A(10,20)
+    a1.fn1()
+    a1.fn2()
+    a1.fn3()
+    #+END_SRC
+
+    方法 fn1/fn2/fn3 都没有定义，添加代码，是没有定义的方法都调用 mydefault 函数，上面的代码应该输出
+    #+BEGIN_SRC python
+    defaultdefaultdefault
+    #+END_SRC
+
+    答案：
+    #+BEGIN_SRC python
+    class A(object):
+        def __init__(self,a,b):
+            self.a1 = a
+            self.b1 = b
+            print 'init'
+        def mydefault(self):
+            print 'default'
+        def __getattr__(self,name):
+            return self.mydefault
+
+    a1 = A(10,20)
+    a1.fn1()
+    a1.fn2()
+    a1.fn3()
+    #+END_SRC
+
+    方法__getattr__只有当没有定义的方法调用时，才是调用他。当 fn1 方法传入参数时，我们可以给 mydefault 方法增加一个*args 不定参数来兼容。
+    #+BEGIN_SRC python
+    class A(object):
+        def __init__(self,a,b):
+            self.a1 = a
+            self.b1 = b
+            print 'init'
+        def mydefault(self,*args):
+            print 'default:' + str(args[0])
+        def __getattr__(self,name):
+            print "other fn:",name
+            return self.mydefault
+
+    a1 = A(10,20)
+    a1.fn1(33)
+    a1.fn2('hello')
+    a1.fn3(10)
+    #+END_SRC
+8. 包管理
+    一个包里有三个模块，mod1.py, mod2.py, mod3.py，但使用 from demopack import *导入模块时，如何保证只有 mod1、mod3 被导入了。
+
+    答案：增加__init__.py 文件，并在文件中增加：
+    #+BEGIN_SRC python
+    __all__ = ['mod1','mod3']
+    #+END_SRC
+9. 闭包
+
+    写一个函数，接收整数参数 n，返回一个函数，函数的功能是把函数的参数和 n 相乘并把结果返回。
+
+    #+BEGIN_SRC python
+    def mulby(num):
+        def gn(val):
+            return num * val
+
+        return gn
+
+
+    zw = mulby(7)
+    print(zw(9));
+    #+END_SRC
+10. 性能
+
+    解析下面的代码慢在哪
+    #+BEGIN_SRC python
+    def strtest1(num):
+        str='first'
+        for i in range(num):
+            str+="X"
+        return str
+    #+END_SRC
+
+    答案：python 的 str 是个不可变对象，每次迭代，都会生成新的 str 对
+    象来存储新的字符串，num 越大，创建的 str 对象越多，内存消耗越大。

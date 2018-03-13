@@ -1,0 +1,15 @@
+* Python 常见面试题
+1. 类继承
+2. 方法对象
+3. new 和 init
+4. Python list 和 dict 生成
+5. 全局和局部变量
+6. 交换两个变量的值
+7. 默认方法
+8. 包管理
+9. 闭包
+10. 性能
+
+
+参考：
+- https://mp.weixin.qq.com/s/51XG31ZEo9ODwhgj9IaTsw
