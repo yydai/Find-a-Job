@@ -1,3 +1,5 @@
+#+OPTIONS: toc:t
+
 1. 类继承
     #+BEGIN_SRC python
     class A(object):
